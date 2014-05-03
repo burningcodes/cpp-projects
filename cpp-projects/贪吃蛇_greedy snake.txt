@@ -1,0 +1,159 @@
+#include <iostream>
+#include <stdlib.h>
+#include <conio.h>
+#include <time.h>
+#include <windows.h>
+#include <algorithm>
+#include <vector>
+#include <iterator>
+#define WIDTH 21
+#define LENGTH 51
+using namespace std;
+class myframe{
+public:
+    char frame[WIDTH][LENGTH]; 
+    void initframe();
+    void refrashframe();
+}game;
+void myframe::initframe(){
+    int i,j;
+    cout<<"                Welcome to the game!"<<endl;
+    cout<<"           press w,a,s,d to control the snake"<<endl;
+    for(i=0;i<WIDTH;++i)
+        for(j=0;j<LENGTH;++j){
+            if(i==0||i==WIDTH-1||j==0||j==LENGTH-1)frame[i][j]='*';
+        }
+     for(int i=0;i<WIDTH;++i){
+        for(int j=0;j<LENGTH;++j){
+            cout<<frame[i][j];
+        }
+        cout<<endl;
+    }     
+}
+
+class snakenode{
+public:
+    int x,y;
+    bool operator==(const snakenode s){
+       return s.x==x && s.y== y;//这里可以自定匹配个数
+    }
+};
+class snake{
+    private:
+        vector <snakenode> mysnake;
+    public:
+        void initsnake();
+        void move();
+        bool eatfood(int x,int y,int pox,int poy);
+        void changepos(char frame[][LENGTH],int pox,int poy);
+        bool choice(char op,vector<snakenode>::size_type i,int &flag,int x,int y);
+        void randomfood(int &pox,int &poy);
+};
+
+
+bool snake::choice(char op,vector<snakenode>::size_type i,int &flag,int pox,int poy){
+    bool ate=false;
+    vector<snakenode>::iterator  p;
+    for(vector<snakenode>::size_type j=0;j<i-1;++j){//贪吃蛇移动算法
+        mysnake[j].x=mysnake[j+1].x;
+        mysnake[j].y=mysnake[j+1].y;
+    }
+    switch(op){//移动蛇头 蛇头下一个位置若为食物则增加蛇长
+    case 'w':
+    ate=eatfood(mysnake[i-1].x-1,mysnake[i-1].y,pox,poy);
+    mysnake[i-1].x-=1;
+    break;
+    case 'a':
+    ate=eatfood(mysnake[i-1].x,mysnake[i-1].y-1,pox,poy);
+    mysnake[i-1].y-=1;
+    break;
+    case 's':
+    ate=eatfood(mysnake[i-1].x+1,mysnake[i-1].y,pox,poy);
+    mysnake[i-1].x+=1;
+    break;
+    case 'd':
+    ate=eatfood(mysnake[i-1].x,mysnake[i-1].y+1,pox,poy);
+    mysnake[i-1].y+=1;
+    break;
+    case 'q':flag=0;
+    break;
+    }
+    if( mysnake[i-1].x<=0|| mysnake[i-1].x>=WIDTH-1\
+    || mysnake[i-1].y<=0|| mysnake[i-1].y>=LENGTH-1)
+        flag=-1; //碰到边界
+    }
+    return ate;
+}
+void snake::move(){
+    char op;
+    int flag=1,pox,poy;
+    bool ate=true;
+    while(flag&&flag!=-1&&flag!=-2){
+    op=getch();
+    vector<snakenode>::size_type i;
+    while(!kbhit()){
+        if(ate){randomfood(pox,poy);ate=false;}
+        system("cls");
+        i=mysnake.size();
+        ate=choice(op,i,flag,pox,poy);
+        changepos(game.frame,pox,poy);
+        Sleep(200);
+        if(flag==-1){
+        cout<<"Game Over!"<<endl;
+        break;
+        }
+    }
+    }
+}
+
+void snake::randomfood(int &pox,int &poy){
+    srand((int)time(0));
+    pox=rand()%(WIDTH-1)+1;
+    poy=rand()%(LENGTH-1)+1;
+}
+
+void snake::initsnake(){
+    snakenode  *__snake=new snakenode;
+    __snake->x=WIDTH/2;
+    __snake->y=LENGTH/2;
+    mysnake.push_back(*__snake);
+    delete __snake;
+}
+
+bool snake::eatfood(int x,int y,int pox,int poy){
+    if(x==pox&&y==poy){
+        snakenode  *newnode=new snakenode();
+        newnode->x=pox;
+        newnode->y=poy;
+        mysnake.insert(mysnake.begin(),*newnode);
+        delete newnode;
+        return true;
+    }
+    return false;
+}
+void snake::changepos(char frame[][LENGTH],int pox,int poy){
+    char tempframe[WIDTH][LENGTH];
+    cout<<"                Welcome to the game!"<<endl;
+    cout<<"           press w,a,s,d to control the snake"<<endl;
+    for(int i=0;i<WIDTH;++i)
+        for(int j=0;j<LENGTH;++j){
+            tempframe[i][j]=frame[i][j];
+        }
+    tempframe[pox][poy]='b';
+    for(int i=0;i<mysnake.size();++i)
+        tempframe[mysnake[i].x][mysnake[i].y]='s';
+    for(int i=0;i<WIDTH;++i){
+        for(int j=0;j<LENGTH;++j){
+            cout<<tempframe[i][j];
+        }
+        cout<<endl;
+    }     
+}
+int main(){
+    snake ss;
+    ss.initsnake();
+    game.initframe();
+    ss.move();
+    system("pause");
+    return 0;
+}
